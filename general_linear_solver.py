@@ -305,6 +305,8 @@ def solve(A, b):
     eps = np.finfo(A.dtype if np.issubdtype(A.dtype, np.floating) else np.float64).eps
     max_abs = np.max(np.abs(A)) if A.size > 0 else 1.0
     tol = max(m, n) * eps * max_abs
+    # Use a slightly more relaxed tolerance for consistency check
+    consistency_tol = tol * 100
 
     r = 0
     for k in range(min(m, n)):
@@ -313,28 +315,30 @@ def solve(A, b):
         else:
             break
 
-    # Apply row permutation to b: b_perm[i] = b[P[i]]
-    b_perm = b_work[P, :]
-
-    # Forward substitution: Solve L y = b_perm
-    # L has unit diagonal, stored in lower triangle of A_LU
+    # Forward substitution: Solve L y = P b
+    # The factorization gives us: A[P,:] = L U (in permuted row order)
+    # We need to solve: L y = (P b)
     y = np.zeros((m, num_rhs), dtype=A.dtype)
-    for k in range(r):
-        y[k, :] = b_perm[k, :]
-        for j in range(k):
+    for k in range(m):
+        y[k, :] = b_work[P[k], :]
+        for j in range(min(k, r)):
+            # L[k,j] is stored at A_LU[P[k], Q[j]] for j < k
             y[k, :] -= A_LU[P[k], Q[j]] * y[j, :]
 
-    # Check consistency: remaining rows should have zero in y
+    # Check consistency: rows beyond rank r should have zero in y
     for k in range(r, m):
-        if not np.allclose(b_perm[k, :], 0, atol=tol):
+        if not np.allclose(y[k, :], 0, atol=consistency_tol, rtol=1e-8):
             raise ValueError("inconsistent system: A x = b has no solution")
 
     # Back substitution: Solve U z = y[:r] for pivot variables
+    # U is r x n, but only first r columns (pivot columns) are used for basic variables
     z = np.zeros((r, num_rhs), dtype=A.dtype)
     for k in range(r - 1, -1, -1):
         z[k, :] = y[k, :]
         for j in range(k + 1, r):
+            # U[k,j] is stored at A_LU[P[k], Q[j]]
             z[k, :] -= A_LU[P[k], Q[j]] * z[j, :]
+        # Diagonal of U is at A_LU[P[k], Q[k]]
         z[k, :] /= A_LU[P[k], Q[k]]
 
     # Construct particular solution: assign pivot variables, set free variables to 0
