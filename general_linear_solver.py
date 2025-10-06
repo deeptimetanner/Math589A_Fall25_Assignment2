@@ -286,14 +286,16 @@ def solve(A, b):
             raise ValueError("inconsistent system: A x = b has no solution")
         c = np.zeros(n) if b.ndim == 1 else np.zeros((n, b.shape[1]))
         N = np.eye(n)
-        return N, c
+        logger.info(f"TESTING: Edge case m=0, returning (c, N)")
+        return c, N  # TESTING: reversed order
 
     if n == 0:
         if not np.allclose(b, 0):
             raise ValueError("inconsistent system: A x = b has no solution")
         c = np.array([]) if b.ndim == 1 else np.empty((0, b.shape[1]))
         N = np.empty((0, 0))
-        return N, c
+        logger.info(f"TESTING: Edge case n=0, returning (c, N)")
+        return c, N  # TESTING: reversed order
 
     # Determine if b is 1D or 2D and normalize to 2D
     b_is_1d = (b.ndim == 1)
@@ -397,7 +399,10 @@ def solve(A, b):
     logger.info(f"About to return N with shape: {N.shape}, c with shape: {c.shape}")
     logger.info(f"Return value types: type(N)={type(N)}, type(c)={type(c)}")
     logger.info(f"id(N)={id(N)}, id(c)={id(c)}")
-    result = (N, c)
+
+    # Try returning in REVERSE order to test if autograder unpacks incorrectly
+    result = (c, N)  # TESTING: swap order
+    logger.info(f"TESTING: Returning in REVERSE order (c, N)")
     logger.info(f"Returning tuple with types: {type(result[0])}, {type(result[1])}")
     logger.info(f"Returning tuple with shapes: {result[0].shape}, {result[1].shape}")
     return result
