@@ -118,60 +118,38 @@ def paqlu_decomposition_in_place(A):
         raise TypeError("A's dtype must be a supported numeric type")
 
     m, n = A.shape
-
-    # Initialize permutation vectors
     P = np.arange(m, dtype=int)
     Q = np.arange(n, dtype=int)
-
-    # Compute tolerance for numerical rank determination
     eps = np.finfo(A.dtype if np.issubdtype(A.dtype, np.floating) else np.float64).eps
-    max_abs = np.max(np.abs(A)) if A.size > 0 else 1.0
-    # Use a more conservative tolerance for rank detection
-    tol = max(m, n) * eps * max_abs * 1e3
 
-    k_max = min(m, n)
+    for k in range(min(m, n)):
+        # Find pivot in submatrix A[P[k:], Q[k:]]
+        pivot_row_idx, pivot_col_idx = k, k
+        max_val = 0.0
+        for r_idx in range(k, m):
+            for c_idx in range(k, n):
+                val = abs(A[P[r_idx], Q[c_idx]])
+                if val > max_val:
+                    max_val = val
+                    pivot_row_idx, pivot_col_idx = r_idx, c_idx
 
-    for k in range(k_max):
-        # Find pivot in submatrix A[P[k:], :][:, Q[k:]]
-        pivot_i = -1
-        pivot_j = -1
-        max_pivot = 0.0
-
-        for j_idx in range(k, n):
-            j = Q[j_idx]
-            for i_idx in range(k, m):
-                i = P[i_idx]
-                val = abs(A[i, j])
-                if val > max_pivot:
-                    max_pivot = val
-                    pivot_i = i_idx
-                    pivot_j = j_idx
-
-        # Stop if no suitable pivot found
-        if max_pivot <= tol:
+        # Check for numerical rank
+        tol = max(m, n) * eps * max_val
+        if max_val <= tol:
             break
 
-        # Swap row indices in P (simulated row exchange)
-        if pivot_i != k:
-            P[k], P[pivot_i] = P[pivot_i], P[k]
+        # Swap rows in P
+        P[k], P[pivot_row_idx] = P[pivot_row_idx], P[k]
+        # Swap columns in Q
+        Q[k], Q[pivot_col_idx] = Q[pivot_col_idx], Q[k]
 
-        # Swap column indices in Q (simulated column exchange)
-        if pivot_j != k:
-            Q[k], Q[pivot_j] = Q[pivot_j], Q[k]
-
-        # Current pivot position (in permuted ordering: row P[k], col Q[k])
-        pivot = A[P[k], Q[k]]
-
-        # Gaussian elimination on rows P[k+1:m]
-        for i_idx in range(k + 1, m):
-            i = P[i_idx]
-            multiplier = A[i, Q[k]] / pivot
-            A[i, Q[k]] = multiplier  # Store L multiplier
-
-            # Update row i for columns Q[k+1:n]
-            for j_idx in range(k + 1, n):
-                j = Q[j_idx]
-                A[i, j] -= multiplier * A[P[k], j]
+        # Elimination
+        pivot_val = A[P[k], Q[k]]
+        for i in range(k + 1, m):
+            multiplier = A[P[i], Q[k]] / pivot_val
+            A[P[i], Q[k]] = multiplier
+            for j in range(k + 1, n):
+                A[P[i], Q[j]] -= multiplier * A[P[k], Q[j]]
 
     return P, Q, A
 

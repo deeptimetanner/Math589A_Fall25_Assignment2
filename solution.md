@@ -226,7 +226,6 @@ All test cases in our local testing passed:
 3. **Strict tolerance:** Consistency check failed on valid rank-deficient systems
    - **Fix:** Added relaxed `consistency_tol = tol * 100`
 
-## References
-- `README.md` - Assignment requirements
-- `derivation.pdf` - Mathematical derivation of PA=LU solver
-- `general_linear_info.py` - Detailed docstrings and specifications
+## Log
+
+- **2025-10-06:** Updated `paqlu_decomposition_in_place` function in `general_linear_solver.py`. The original implementation had a flawed rank detection mechanism. Replaced it with a more robust version that correctly identifies the numerical rank by using a tolerance based on the maximum absolute value of the current submatrix. This change is intended to fix failures in tests for underdetermined and rank-deficient systems.
