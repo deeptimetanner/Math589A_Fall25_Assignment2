@@ -45,8 +45,8 @@ def plu_decomposition_in_place(A):
     # Compute tolerance for numerical rank
     eps = np.finfo(A.dtype if np.issubdtype(A.dtype, np.floating) else np.float64).eps
     max_abs = np.max(np.abs(A)) if A.size > 0 else 1.0
-    # Use a more conservative tolerance for rank detection
-    tol = max(m, n) * eps * max_abs * 1e3
+    # Use a more aggressive tolerance for rank detection (similar to SVD-based rank)
+    tol = max(m, n) * eps * max_abs * 1e6
 
     k_max = min(m, n)
 
