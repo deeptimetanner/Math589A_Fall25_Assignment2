@@ -395,4 +395,9 @@ def solve(A, b):
         c = c.flatten()
 
     logger.info(f"About to return N with shape: {N.shape}, c with shape: {c.shape}")
-    return N, c
+    logger.info(f"Return value types: type(N)={type(N)}, type(c)={type(c)}")
+    logger.info(f"id(N)={id(N)}, id(c)={id(c)}")
+    result = (N, c)
+    logger.info(f"Returning tuple with types: {type(result[0])}, {type(result[1])}")
+    logger.info(f"Returning tuple with shapes: {result[0].shape}, {result[1].shape}")
+    return result
