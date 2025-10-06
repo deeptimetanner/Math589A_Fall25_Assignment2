@@ -1,6 +1,8 @@
 import numpy as np
 import logging_setup
+import logging
 
+logger = logging.getLogger(__name__)
 
 def paqlu_decomposition_in_place(A):
     """
@@ -126,8 +128,8 @@ def paqlu_decomposition_in_place(A):
     # Compute tolerance for numerical rank determination
     eps = np.finfo(A.dtype if np.issubdtype(A.dtype, np.floating) else np.float64).eps
     max_abs = np.max(np.abs(A)) if A.size > 0 else 1.0
-    # Use aggressive tolerance for detecting rank deficiency (treats values < 1e-6 as zero)
-    tol = max(1e-6, max(m, n) * eps * max_abs * 1e6)
+    # Use a more conservative tolerance for rank detection
+    tol = max(m, n) * eps * max_abs * 1e6
 
     k_max = min(m, n)
 
@@ -174,7 +176,6 @@ def paqlu_decomposition_in_place(A):
                 A[i, j] -= multiplier * A[P[k], j]
 
     return P, Q, A
-
 
 def solve(A, b):
     """
@@ -277,6 +278,7 @@ def solve(A, b):
 
     """
     m, n = A.shape
+    logger.info(f"Matrix shape: m={m}, n={n}")
 
     # Handle edge cases
     if m == 0:
@@ -305,8 +307,8 @@ def solve(A, b):
     # Determine numerical rank by checking diagonal of U in permuted coordinates
     eps = np.finfo(A.dtype if np.issubdtype(A.dtype, np.floating) else np.float64).eps
     max_abs = np.max(np.abs(A)) if A.size > 0 else 1.0
-    # Use aggressive tolerance for detecting rank deficiency (treats values < 1e-6 as zero)
-    tol = max(1e-6, max(m, n) * eps * max_abs * 1e6)
+    # Use a more conservative tolerance for rank detection
+    tol = max(m, n) * eps * max_abs * 1e6
     # Use a slightly more relaxed tolerance for consistency check
     consistency_tol = tol * 100
 
@@ -316,6 +318,7 @@ def solve(A, b):
             r += 1
         else:
             break
+    logger.info(f"Calculated rank r = {r}")
 
     # Forward substitution: Solve L y = P b
     # The factorization gives us: A[P,:] = L U (in permuted row order)
@@ -354,7 +357,9 @@ def solve(A, b):
 
     # Build nullspace basis
     f = n - r  # number of free variables
+    logger.info(f"Calculated nullity f = {f}")
     N_perm = np.zeros((n, f), dtype=A.dtype)
+    logger.info(f"Shape of N_perm: {N_perm.shape}")
 
     for free_idx in range(f):
         # Set free_idx-th free variable to 1
@@ -379,6 +384,7 @@ def solve(A, b):
 
     # Apply inverse column permutation to nullspace basis
     N = N_perm[Q_inv, :]
+    logger.info(f"Shape of N: {N.shape}")
 
     # Return appropriate shapes
     if b_is_1d:
