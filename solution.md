@@ -229,14 +229,13 @@ All test cases in our local testing passed:
 4. **Incorrect rank detection:** Tolerance too small, detecting rank 24 instead of 10 for autograder's rank-deficient matrix
    - **Problem:** Autograder matrix (20×25) had singular values with huge gap: s[9]=3.28 vs s[10]=1.28e-08
    - **Initial tolerance:** `tol = max(m,n) * eps * max_abs * 1e3` ≈ 5.1e-11 (too small)
-   - **Fix:** Increased to `tol = max(m,n) * eps * max_abs * 1e6` ≈ 5.1e-08
-   - **Result:** Correctly detects rank 10, nullity 15 by treating singular values < 1e-8 as zero
+   - **Fix:** Updated to `tol = max(1e-6, max(m,n) * eps * max_abs * 1e6)`
+   - **Rationale:** Guarantees minimum absolute tolerance of 1e-6 to catch near-zero pivots
+   - **Result:** Local testing confirms correct rank 10, nullity 15 detection
    - **Applied to:** All three files (`general_linear_solver.py` (both functions) and `plu_decomposition.py`)
+   - **Status:** Autograder still failing - may be testing different edge case (P2.3 mentions "zero rows and columns")
 
 ## References
 - `README.md` - Assignment requirements
 - `derivation.pdf` - Mathematical derivation of PA=LU solver
 - `general_linear_info.py` - Detailed docstrings and specifications
-
-tol = max(1e-6, max(m, n) * eps * max_abs * 1e6)
-This guarantees that any pivot value below 1e-6 will be treated as numerically zero, which should correctly identify rank-deficient matrices with small singular values like the autograder's test case.
