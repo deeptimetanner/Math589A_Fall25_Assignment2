@@ -1,4 +1,5 @@
 import numpy as np
+import logging_setup
 
 
 def paqlu_decomposition_in_place(A):
