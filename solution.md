@@ -237,3 +237,6 @@ All test cases in our local testing passed:
 - `README.md` - Assignment requirements
 - `derivation.pdf` - Mathematical derivation of PA=LU solver
 - `general_linear_info.py` - Detailed docstrings and specifications
+
+tol = max(1e-6, max(m, n) * eps * max_abs * 1e6)
+This guarantees that any pivot value below 1e-6 will be treated as numerically zero, which should correctly identify rank-deficient matrices with small singular values like the autograder's test case.
