@@ -235,6 +235,29 @@ All test cases in our local testing passed:
    - **Applied to:** All three files (`general_linear_solver.py` (both functions) and `plu_decomposition.py`)
    - **Status:** Autograder still failing - may be testing different edge case (P2.3 mentions "zero rows and columns")
 
+5. **Shape mismatch mystery:** Autograder P2.3 logs show internal computation is correct but test receives wrong shape
+   - **Symptom:** Autograder logs show:
+     ```
+     INFO - Calculated rank r = 10
+     INFO - Calculated nullity f = 15
+     INFO - Shape of N: (25, 15)
+     Test Failed: Tuples differ: (25, 1) != (25, 15)
+     ```
+   - **Analysis:** Code computes N.shape = (25,15) correctly internally, but test assertion sees (25,1)
+   - **Local testing:** All local tests pass with correct shapes - cannot reproduce the issue
+   - **Hypothesis:** May be version incompatibility, caching issue, or autograder environment difference
+   - **Debug approach:** Added enhanced logging to track N through inverse permutation:
+     ```python
+     logger.info(f"Q_inv: {Q_inv}")
+     logger.info(f"N_perm shape before permutation: {N_perm.shape}")
+     N = N_perm[Q_inv, :]
+     logger.info(f"N shape after permutation: {N.shape}")
+     logger.info(f"N dtype: {N.dtype}")
+     logger.info(f"N flags: C_CONTIGUOUS={N.flags['C_CONTIGUOUS']}, F_CONTIGUOUS={N.flags['F_CONTIGUOUS']}")
+     logger.info(f"About to return N with shape: {N.shape}, c with shape: {c.shape}")
+     ```
+   - **Status:** Waiting for autograder feedback with enhanced logging to identify where shape changes
+
 ## References
 - `README.md` - Assignment requirements
 - `derivation.pdf` - Mathematical derivation of PA=LU solver
