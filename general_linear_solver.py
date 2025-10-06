@@ -383,11 +383,16 @@ def solve(A, b):
         N_perm[r + free_idx, free_idx] = 1.0
 
     # Apply inverse column permutation to nullspace basis
+    logger.info(f"Q_inv: {Q_inv}")
+    logger.info(f"N_perm shape before permutation: {N_perm.shape}")
     N = N_perm[Q_inv, :]
-    logger.info(f"Shape of N: {N.shape}")
+    logger.info(f"N shape after permutation: {N.shape}")
+    logger.info(f"N dtype: {N.dtype}")
+    logger.info(f"N flags: C_CONTIGUOUS={N.flags['C_CONTIGUOUS']}, F_CONTIGUOUS={N.flags['F_CONTIGUOUS']}")
 
     # Return appropriate shapes
     if b_is_1d:
         c = c.flatten()
 
+    logger.info(f"About to return N with shape: {N.shape}, c with shape: {c.shape}")
     return N, c
